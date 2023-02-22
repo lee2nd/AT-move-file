@@ -5,8 +5,29 @@ import shutil
 from datetime import date
 import schedule  
 import time
+import logging
 
+def CreateLog(fileName, logPath):
+    if not os.path.exists(logPath):
+        os.mkdir(logPath)
+        logging.basicConfig(
+            filename= f'./log/{fileName}', 
+            filemode= 'w', 
+            format= '%(asctime)s - %(message)s', 
+            encoding= 'utf-8'
+            )
+    else:
+        logging.basicConfig(
+            filename= f'./log/{fileName}', 
+            filemode='a', 
+            format='%(asctime)s - %(message)s',
+            encoding='utf-8'
+            )   
+        
 def job():
+
+    CreateLog(fileName='running.log', logPath="./log/")
+    
     list_of_files = glob.glob("/AMF/Source_at/*.xlsx")
     latest_file = max(list_of_files, key=os.path.getctime)
     print(latest_file)
@@ -81,12 +102,13 @@ def job():
     df_report = pd.DataFrame({'adr file missing chip id':fail_a_lst})
     today = date.today()
     df_report.to_excel("/AMF/Target/adr_file_missing_"+today.strftime("%m_%d")+".xlsx")
-
-    print("finished!")
     
-# schedule.every(1).minutes.do(job)      
-schedule.every().day.at("6:30").do(job)  
-schedule.every().day.at("17:30").do(job)  
-  
-while True:  
-    schedule.run_pending()     
+    logging.warning('finished!')
+
+if __name__ == '__main__':
+    
+    schedule.every().day.at("06:30").do(job)  
+    schedule.every().day.at("17:30").do(job)  
+
+    while True:  
+        schedule.run_pending()     
